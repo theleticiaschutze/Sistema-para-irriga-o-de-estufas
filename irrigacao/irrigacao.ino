@@ -16,6 +16,7 @@ const int mqtt_port = 1883;  // MQTT port (TCP)
 WiFiClient espClient;
 PubSubClient mqtt_client(espClient);
 
+
 void connectToWiFi();
 
 void connectToMQTTBroker();
