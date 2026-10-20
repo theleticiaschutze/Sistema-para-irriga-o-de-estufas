@@ -7,8 +7,7 @@ const char *password = "10Tr4uEnsino";
 
 // MQTT Broker settings
 const char *mqtt_broker = "broker.emqx.io";  // EMQX broker endpoint
-//const char *mqtt_topic = "topicEdilson_ifsc/esp8266";     // MQTT topic
-const char *mqtt_topic = "topicEdilson_ifsc/3";     // MQTT topic
+const char *mqtt_topic = "topicIrrigacao_ifsc/5";     // MQTT topic
 const char *mqtt_username = "emqx";  // MQTT username for authentication
 const char *mqtt_password = "public";  // MQTT password for authentication
 const int mqtt_port = 1883;  // MQTT port (TCP)
@@ -16,11 +15,8 @@ const int mqtt_port = 1883;  // MQTT port (TCP)
 WiFiClient espClient;
 PubSubClient mqtt_client(espClient);
 
-
 void connectToWiFi();
-
 void connectToMQTTBroker();
-
 void mqttCallback(char *topic, byte *payload, unsigned int length);
 
 void setup() {
@@ -48,10 +44,9 @@ void connectToMQTTBroker() {
         if (mqtt_client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
             Serial.println("Conectado ao MQTT broker");
             mqtt_client.subscribe(mqtt_topic);
-            // Publish message upon successful connection
-            mqtt_client.publish(mqtt_topic, "Ola EMQX sou ESP8266 ^^");
+            mqtt_client.publish(mqtt_topic, "Ola EMQX sou ESP8266 trabalhando para irrigar! ^^");
         } else {
-            Serial.print("Falha ao contectar no MQTT broker, rc=");
+            Serial.print("Falha ao conectar no MQTT broker, rc=");
             Serial.print(mqtt_client.state());
             Serial.println(" tentando novamente em 5 segundos");
             delay(5000);
@@ -60,9 +55,9 @@ void connectToMQTTBroker() {
 }
 
 void mqttCallback(char *topic, byte *payload, unsigned int length) {
-    Serial.print("Mensagem recebido do tópico: ");
+    Serial.print("Mensagem recebida do tópico: ");
     Serial.println(topic);
-    Serial.print("Mensagem:");
+    Serial.print("Mensagem: ");
     for (unsigned int i = 0; i < length; i++) {
         Serial.print((char) payload[i]);
     }
@@ -70,9 +65,10 @@ void mqttCallback(char *topic, byte *payload, unsigned int length) {
     Serial.println("-----------------------");
 }
 
+
 void publish_sensor_data(int id, float temp) {
     String topic = "sensor/" + String(id);
-    client.publish(topic.c_str(), String(temp).c_str());
+    mqtt_client.publish(topic.c_str(), String(temp).c_str());
 }
 
 void loop() {
@@ -82,7 +78,7 @@ void loop() {
 
     int temperatura = analogRead(A0);
 
-    String payload = String(temperatura); // Transforma a temperatura em string
+    String payload = String(temperatura); // Transforma a leitura em string
     
     // Publica no tópico MQTT
     mqtt_client.publish(mqtt_topic, payload.c_str());
