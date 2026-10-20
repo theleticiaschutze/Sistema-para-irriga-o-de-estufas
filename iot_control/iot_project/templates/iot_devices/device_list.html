@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Seus Dispositivos</h2>
+<a href="{% url 'add_device' %}" class="btn btn-primary mb-3">Adicionar Dispositivo</a>
+
+<ul class="list-group">
+    {% for device in devices %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        {{ device.name }}
+        <div>
+            <a href="{% url 'control_device' device.id %}?action=on"
+               class="btn btn-success btn-sm mr-2">Ligar</a>
+            <a href="{% url 'control_device' device.id %}?action=off"
+               class="btn btn-danger btn-sm">Desligar</a>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Seus Dispositivos</h2>
+<a href="{% url 'add_device' %}" class="btn btn-primary mb-3">Adicionar Dispositivo</a>
+
+<ul class="list-group">
+    {% for device in command_devices %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+            <strong>{{ device.name }}</strong><br>
+            <small class="text-muted">Tópico MQTT: {{ device.topic }}</small>
+        </div>
+        <div>
+            <a href="{% url 'control_command_device' device.id %}?action=on"
+               class="btn btn-success btn-sm mr-2">Ligar</a>
+            <a href="{% url 'control_command_device' device.id %}?action=off"
+               class="btn btn-danger btn-sm mr-2">Desligar</a>
+            <a href="{% url 'edit_device' device.id %}"
+               class="btn btn-warning btn-sm mr-2">Editar</a>
+            <a href="{% url 'delete_device' device.id %}"
+               class="btn btn-danger btn-sm">Excluir</a>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+
+<ul id="sensor-list" class="list-group mt-4">
+    <!-- Os sensores serão carregados via AJAX -->
+</ul>
+
+<!-- Incluindo o script JavaScript -->
+<script>
+function fetchSensorData() {
+    fetch("{% url 'get_sensor_values' %}")
+        .then(response => response.json())
+        .then(data => {
+            const sensorList = document.getElementById("sensor-list");
+            sensorList.innerHTML = ""; // Limpa a lista
+
+            data.forEach(sensor => {
+                const li = document.createElement("li");
+                li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+                const leftDiv = document.createElement("div");
+                leftDiv.innerHTML = `<strong>${sensor.name} / ID: ${sensor.id}</strong><br>
+                                     <small class="text-muted">Tópico MQTT: ${sensor.topic}</small><br>
+                                     <span class="font-weight-bold">${sensor.current_value} ${sensor.unit}</span>`;
+
+                const rightDiv = document.createElement("div");
+
+                // rightDiv.innerHTML = `
+                //     <a href="{% url 'edit_device' 0 %}".replace('0', sensor.id)
+                //        class="btn btn-warning btn-sm mr-2" id="${sensor.id}">Editar: ${sensor.id}</a>
+                //     <a href="{% url 'delete_device' 0 %}".replace('0', sensor.id)
+                //        class="btn btn-danger btn-sm">Excluir</a>
+                // `;
+
+                rightDiv.innerHTML = `
+                    <a href="/iot/edit/${sensor.id}/"
+                       class="btn btn-warning btn-sm mr-2" id="${sensor.id}">Editar</a>
+                    <a href="/iot/delete/${sensor.id}/"
+                       class="btn btn-danger btn-sm">Excluir</a>
+                `;
+
+                li.appendChild(leftDiv);
+                li.appendChild(rightDiv);
+                sensorList.appendChild(li);
+            });
+        })
+        .catch(error => console.error('Erro ao buscar dados:', error));
+}
+// f"{API_URL}{sensor_id}/"
+// Atualiza os dados a cada 3 segundos
+setInterval(fetchSensorData, 3000);
+
+// Carrega os dados ao carregar a página
+window.onload = fetchSensorData;
+</script>
+{% endblock %}

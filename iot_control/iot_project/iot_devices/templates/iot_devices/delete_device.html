@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Excluir Dispositivo</h2>
+<p>Você tem certeza que deseja excluir "{{ device.name }}"?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Excluir</button>
+    <a href="{% url 'device_list' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}
