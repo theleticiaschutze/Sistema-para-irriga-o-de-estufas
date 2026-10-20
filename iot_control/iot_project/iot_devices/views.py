@@ -14,6 +14,27 @@ from django.shortcuts import render, redirect
 from .models import CommandDevice, SensorDevice
 from django.contrib.auth.decorators import login_required
 
+@csrf_exempt
+def update_sensor_value_by_topic(request):
+    if request.method == "POST":
+        topic = request.POST.get("topic")
+        value = request.POST.get("value")
+
+        if topic and value:
+            try:
+                # Busca o sensor pelo TÓPICO cadastrado (campo unique=True)
+                sensor = SensorDevice.objects.get(topic=topic)
+                sensor.current_value = float(value)
+                sensor.save()
+                return JsonResponse({"status": "success", "sensor": sensor.name, "value": sensor.current_value})
+            except SensorDevice.DoesNotExist:
+                print(f"Sensor com tópico '{topic}' não foi encontrado.")
+                return JsonResponse({"error": "Sensor não encontrado"}, status=404)
+            except ValueError:
+                return JsonResponse({"error": "Valor numérico inválido"}, status=400)
+
+    return JsonResponse({"error": "Método não permitido"}, status=405)
+
 @login_required
 def device_list(request): # listagem dos dispositivos
     command_devices = CommandDevice.objects.filter(user=request.user) # puxa os dispositivos atuadores do db conforme o user
