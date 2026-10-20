@@ -11,6 +11,17 @@
         <label for="topic">Tópico MQTT</label>
         <input type="text" class="form-control" id="topic" name="topic" value="{{ device.topic }}" required>
     </div>
+
+    <div class="form-group">
+        {% if device_type == 'sensor' %}
+    <label for="unit">Unidade de Medida:</label>
+    <select name="unit" id="unit">
+        <option value="°C" {% if device.unit == "°C" %}selected{% endif %}>Graus Celsius (°C)</option>
+        <option value="%" {% if device.unit == "%" %}selected{% endif %}>Porcentagem (%)</option>
+        <option value="hPa" {% if device.unit == "hPa" %}selected{% endif %}>Hectopascal (hPa)</option>
+    </select>
+{% endif %}
+    </div>
     <button type="submit" class="btn btn-primary">Salvar Alterações</button>
 </form>
 {% endblock %}

@@ -45,16 +45,18 @@ def device_list(request): # listagem dos dispositivos
     })
 
 @login_required
-def add_device(request): # cadastro de um novo dispositivo
+def add_device(request):
     if request.method == "POST":
         device_type = request.POST.get('type')
         name = request.POST.get('name')
         topic = request.POST.get('topic')
+        unit = request.POST.get('unit')  # Capture a unidade enviada
 
         if device_type == 'command':
             CommandDevice.objects.create(name=name, topic=topic, user=request.user)
         elif device_type == 'sensor':
-            SensorDevice.objects.create(name=name, topic=topic, user=request.user)
+            # Salve a unidade junto com o sensor
+            SensorDevice.objects.create(name=name, topic=topic, unit=unit, user=request.user)
         
         return redirect('device_list')
     return render(request, 'iot_devices/add_device.html')
@@ -69,25 +71,25 @@ def control_command_device(request, device_id):
 
 @login_required
 def edit_device(request, device_id):
-    print("Editing device with ID:", device_id)
-    pk = device_id
-
-    # Tenta obter o dispositivo como CommandDevice ou SensorDevice
-    try:
-        device = CommandDevice.objects.get(id=pk, user=request.user)
-    except CommandDevice.DoesNotExist:
-        try:
-            device = SensorDevice.objects.get(id=pk, user=request.user)
-        except SensorDevice.DoesNotExist:
-            # Nenhum dos dispositivos foi encontrado
-            return redirect('device_list')  # Ou raise 404
+    device_type = request.GET.get('type') or request.POST.get('type')
+    
+    if device_type == 'sensor':
+        device = get_object_or_404(SensorDevice, id=device_id, user=request.user)
+    else:
+        device = get_object_or_404(CommandDevice, id=device_id, user=request.user)
 
     if request.method == "POST":
         device.name = request.POST.get('name')
         device.topic = request.POST.get('topic')
+        
+        # Se for um sensor, atualiza também a unidade
+        if device_type == 'sensor':
+            device.unit = request.POST.get('unit')
+            
         device.save()
         return redirect('device_list')
-    return render(request, 'iot_devices/edit_device.html', {'device': device})
+        
+    return render(request, 'iot_devices/edit_device.html', {'device': device, 'device_type': device_type})
 
 @login_required
 def delete_device(request, device_id):

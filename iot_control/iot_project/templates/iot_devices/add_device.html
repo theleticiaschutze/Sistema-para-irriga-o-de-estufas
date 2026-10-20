@@ -11,6 +11,14 @@
         <label for="topic">Tópico MQTT</label>
         <input type="text" class="form-control" id="topic" name="topic" required>
     </div>
+    <div class="form-group">
+        <label for="unit">Unidade de Medida:</label>
+        <select name="unit" id="unit">
+    <option value="°C">Graus Celsius (°C)</option>
+    <option value="%">Porcentagem (%)</option>
+    <option value="hPa">Hectopascal (hPa)</option>
+</select>
+    </div>
     <button type="submit" class="btn btn-primary">Salvar</button>
 </form>
 {% endblock %}
