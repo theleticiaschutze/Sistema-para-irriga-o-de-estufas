@@ -8,7 +8,7 @@ MQTT_PORT = 1883
 MQTT_TOPIC = "topicIrrigacao_ifsc/#"
 
 # URL da API Django para atualizar o valor do sensor
-API_URL = "http://localhost:8000/iot/update_sensor/"
+API_URL = "http://localhost:8000/iot/update_sensor_by_topic/"
 
 def on_connect(client, userdata, flags, rc):
     print("Conectado ao broker com código:", rc)
@@ -24,14 +24,22 @@ def on_message(client, userdata, msg):
         # if not msg.topic.startswith("topicEdilson_ifsc/sensor/"):
         #     print("Tópico não corresponde ao padrão esperado.")
         #     return
-        sensor_id = int(msg.topic.split("/")[-1])  # Extrai o ID do dispositivo
-        payload_value = float(msg.payload.decode())  # Converte a mensagem para número
+       #sensor_id = int(msg.topic.split("/")[-1])  # Extrai o ID do dispositivo
+        #payload_value = float(msg.payload.decode())  # Converte a mensagem para número
+
+        topic_recebido = msg.topic.strip()
+        payload_value = float(msg.payload.decode())
 
 
         
         response = requests.post(
-            f"{API_URL}{sensor_id}/",
-            data={"value": payload_value}
+            #f"{API_URL}{sensor_id}/",
+            #data={"value": payload_value}
+            API_URL,
+            data={
+                "topic": topic_recebido,
+                "value": payload_value
+            }
         )
 
         # response = session_mqtt().post(
@@ -39,7 +47,7 @@ def on_message(client, userdata, msg):
         #     data={"value": payload_value}
         # )
         
-        # print("Status da atualização:", response.status_code)
+        print("Status da atualização:", response.status_code)
     except Exception as e:
         print("Erro ao processar mensagem:", e)
 
