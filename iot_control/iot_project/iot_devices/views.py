@@ -15,16 +15,16 @@ from .models import CommandDevice, SensorDevice
 from django.contrib.auth.decorators import login_required
 
 @login_required
-def device_list(request):
-    command_devices = CommandDevice.objects.filter(user=request.user)
-    sensor_devices = SensorDevice.objects.filter(user=request.user)
+def device_list(request): # listagem dos dispositivos
+    command_devices = CommandDevice.objects.filter(user=request.user) # puxa os dispositivos atuadores do db conforme o user
+    sensor_devices = SensorDevice.objects.filter(user=request.user) # puxa os dispositivos sensores do db conforme o user
     return render(request, 'iot_devices/device_list.html', {
         'command_devices': command_devices,
         'sensor_devices': sensor_devices
     })
 
 @login_required
-def add_device(request):
+def add_device(request): # cadastro de um novo dispositivo
     if request.method == "POST":
         device_type = request.POST.get('type')
         name = request.POST.get('name')
