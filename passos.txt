@@ -1,0 +1,10 @@
+--- ATIVIDADE --
+Sistema para controle de estufas agrícolas ou vasos inteligentes.
+
+Funcionalidades:
+ESP8266: Leitura de sensor de umidade do solo e temperatura
+ambiental; controle de servomotor/solenoide para irrigação.
+Django: Dashboard de status do solo, acionamento manual de
+irrigação e agendamento de regas automáticas.
+
+--- PASSO A PASSO ---
