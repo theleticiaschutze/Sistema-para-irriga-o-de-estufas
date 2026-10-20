@@ -5,7 +5,7 @@ from .mqtt_session_adm import session_mqtt
 # Configurações do broker
 MQTT_BROKER = "broker.emqx.io"  # ou seu IP local
 MQTT_PORT = 1883
-MQTT_TOPIC = "topicEdilson_ifsc/#"
+MQTT_TOPIC = "topicIrrigacao_ifsc/#"
 
 # URL da API Django para atualizar o valor do sensor
 API_URL = "http://localhost:8000/iot/update_sensor_by_topic/"
