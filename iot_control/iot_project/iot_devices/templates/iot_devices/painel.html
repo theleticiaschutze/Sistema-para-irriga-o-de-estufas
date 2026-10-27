@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Painel de Controle</h2>
+
+<!-- Lista de Dispositivos de Comando (Atuadores) -->
+<ul class="list-group mt-3">
+    {% for device in command_devices %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+            <strong>{{ device.name }}</strong> 
+            <span class="badge badge-secondary ml-2">Atuador</span><br>
+            <small class="text-muted">Tópico MQTT: {{ device.topic }}</small>
+        </div>
+        <div>            
+            <a href="{% url 'control_command_device' device.id %}?action=on"
+               class="btn btn-success btn-sm mr-2">Ligar</a>
+            <a href="{% url 'control_command_device' device.id %}?action=off"
+               class="btn btn-danger btn-sm">Desligar</a>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+
+<!-- Lista de Sensores -->
+<ul id="sensor-list" class="list-group mt-4">
+    <!-- Os sensores serão carregados via AJAX -->
+</ul>
+
+<script>
+function fetchSensorData() {
+    fetch("{% url 'get_sensor_values' %}")
+        .then(response => response.json())
+        .then(data => {
+            const sensorList = document.getElementById("sensor-list");
+            sensorList.innerHTML = ""; // Limpa a lista
+
+            data.forEach(sensor => {
+                const li = document.createElement("li");
+                li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+                const leftDiv = document.createElement("div");
+                
+                // tipo de sensor
+                leftDiv.innerHTML = `<strong>${sensor.name} / ID: ${sensor.id}</strong> 
+                                     <span class="badge badge-info ml-2">${sensor.tipo_sensor}</span><br>
+                                     <small class="text-muted">Tópico MQTT: ${sensor.topic}</small><br>
+                                     <span class="font-weight-bold" style="font-size: 1.1em;">
+                                        ${sensor.current_value} ${sensor.unit}
+                                     </span>`;
+
+                
+
+                li.appendChild(leftDiv);
+                sensorList.appendChild(li);
+            });
+        })
+        .catch(error => console.error('Erro ao buscar dados:', error));
+}
+
+
+setInterval(fetchSensorData, 3000);
+
+
+window.onload = fetchSensorData;
+</script>
+{% endblock %}

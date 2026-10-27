@@ -50,13 +50,12 @@ def add_device(request):
         device_type = request.POST.get('type')
         name = request.POST.get('name')
         topic = request.POST.get('topic')
-        unit = request.POST.get('unit')  # Capture a unidade enviada
-
+        tipo_sensor = request.POST.get('tipo_sensor') #adicionei tipo sensor em add_device
+        #if else para se for comando ou sensor, so sensor mostra tipo
         if device_type == 'command':
             CommandDevice.objects.create(name=name, topic=topic, user=request.user)
-        elif device_type == 'sensor':
-            # Salve a unidade junto com o sensor
-            SensorDevice.objects.create(name=name, topic=topic, unit=unit, user=request.user)
+        elif device_type == 'sensor':            
+            SensorDevice.objects.create(name=name, topic=topic, tipo_sensor=tipo_sensor, user=request.user)
         
         return redirect('device_list')
     return render(request, 'iot_devices/add_device.html')
@@ -82,9 +81,9 @@ def edit_device(request, device_id):
         device.name = request.POST.get('name')
         device.topic = request.POST.get('topic')
         
-        # Se for um sensor, atualiza também a unidade
+        
         if device_type == 'sensor':
-            device.unit = request.POST.get('unit')
+            device.tipo_sensor = request.POST.get('tipo_sensor') #também busca o tipo
             
         device.save()
         return redirect('device_list')
@@ -129,6 +128,8 @@ def update_sensor_value(request, sensor_id):
             pass  # Trate se o valor não for numérico
     return redirect('device_list')
 
+
+
 @login_required #corrigir atualização via ajax, que não pode estar autenticado.
 #@csrf_exempt ##corrigir atualização via ajax, que não pode estar autenticado.
 def get_sensor_values(request):
@@ -140,11 +141,23 @@ def get_sensor_values(request):
             'name': sensor.name,
             'topic': sensor.topic,
             'current_value': sensor.current_value if sensor.current_value is not None else "N/D",
-            'unit': sensor.unit
+            'unit': sensor.unit,
+            'tipo_sensor': sensor.tipo_sensor #adicionei isso
         }
         for sensor in sensors
     ]
     return JsonResponse(data, safe=False)
+
+@login_required
+def painel(request):    
+    command_devices = CommandDevice.objects.filter(user=request.user)    
+    
+    sensor_devices = SensorDevice.objects.filter(user=request.user) 
+    
+    return render(request, 'iot_devices/painel.html', {
+        'command_devices': command_devices,
+        'sensor_devices': sensor_devices
+    })
 
 
 @login_required

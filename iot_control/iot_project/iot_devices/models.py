@@ -13,18 +13,26 @@ class CommandDevice(models.Model):
 
 # aqui dispositivos de leitura (os sensores)
 class SensorDevice(models.Model):
-    UNIDADE_CHOICES = [
-        ('°C', 'Graus Celsius (°C)'),
-        ('%', 'Porcentagem (%)'),
-        ('hPa', 'Hectopascal (hPa)'),
+    TIPO_SENSOR = [ #adicionamos escolha de tipos de sensor
+        ('Temperatura', 'Temperatura'),        
+        ('Humidade', 'Humidade'),
     ]
 
     name = models.CharField(max_length=100)
     topic = models.CharField(max_length=200, unique=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)    
     current_value = models.FloatField(null=True, blank=True)
-    unit = models.CharField(max_length=10, choices=UNIDADE_CHOICES, default="°C")
+    unit = models.CharField(max_length=10, editable=False)
+    tipo_sensor = models.CharField(max_length=15, choices=TIPO_SENSOR, default="Temperatura")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.name} ({self.current_value if self.current_value is not None else 'N/D'} {self.unit})"
+
+    def save(self, *args, **kwargs): #unidades por tipo
+        if self.tipo_sensor == 'Temperatura':
+            self.unit = '°C'
+        elif self.tipo_sensor == 'Humidade':
+             self.unit = '%'    
+        super().save(*args, **kwargs)  
+

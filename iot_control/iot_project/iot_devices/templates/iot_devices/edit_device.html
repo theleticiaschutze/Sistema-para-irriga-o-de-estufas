@@ -3,25 +3,31 @@
 <h2>Editar Dispositivo</h2>
 <form method="post">
     {% csrf_token %}
+    
+    <!-- Campo oculto para enviar o 'type' no POST para a views.py -->
+    <input type="hidden" name="type" value="{{ device_type }}">
+    
     <div class="form-group">
         <label for="name">Nome do Dispositivo</label>
         <input type="text" class="form-control" id="name" name="name" value="{{ device.name }}" required>
     </div>
+    
     <div class="form-group">
         <label for="topic">Tópico MQTT</label>
         <input type="text" class="form-control" id="topic" name="topic" value="{{ device.topic }}" required>
     </div>
+    
 
-    <div class="form-group">
-        {% if device_type == 'sensor' %}
-    <label for="unit">Unidade de Medida:</label>
-    <select name="unit" id="unit">
-        <option value="°C" {% if device.unit == "°C" %}selected{% endif %}>Graus Celsius (°C)</option>
-        <option value="%" {% if device.unit == "%" %}selected{% endif %}>Porcentagem (%)</option>
-        <option value="hPa" {% if device.unit == "hPa" %}selected{% endif %}>Hectopascal (hPa)</option>
-    </select>
-{% endif %}
+    {% if device_type == 'sensor' %}
+    <div class="form-group" id="tipo-selection">
+        <label for="tipo_sensor">Tipo de Sensor</label>
+        <select class="form-control" id="tipo_sensor" name="tipo_sensor">
+            <option value="Temperatura" {% if device.tipo_sensor == 'Temperatura' %}selected{% endif %}>Temperatura</option>
+            <option value="Humidade" {% if device.tipo_sensor == 'Humidade' %}selected{% endif %}>Humidade</option>
+        </select>
     </div>
+    {% endif %}
+    
     <button type="submit" class="btn btn-primary">Salvar Alterações</button>
 </form>
 {% endblock %}

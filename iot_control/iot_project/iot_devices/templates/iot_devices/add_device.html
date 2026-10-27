@@ -4,20 +4,54 @@
 <form method="post">
     {% csrf_token %}
     <div class="form-group">
-        <label for="type">Tipo de Dispositivo</label>
+        <label for="type">Categoria do Dispositivo</label>
         <select class="form-control" id="type" name="type" required>
             <option value="command">Dispositivo de Comando</option>
             <option value="sensor">Sensor</option>
         </select>
     </div>
+    
     <div class="form-group">
         <label for="name">Nome do Dispositivo</label>
         <input type="text" class="form-control" id="name" name="name" required>
     </div>
+    
     <div class="form-group">
         <label for="topic">Tópico MQTT</label>
         <input type="text" class="form-control" id="topic" name="topic" required>
     </div>
+    
+    
+    <div class="form-group" id="tipo-selection" style="display: none;">
+        <label for="tipo_sensor">Tipo de sensor (Temperatura ou Humidade)</label>
+        <select class="form-control" id="tipo_sensor" name="tipo_sensor">
+            <option value="Temperatura">Temperatura</option>
+            <option value="Humidade">Humidade</option>
+        </select>
+    </div>
+    
     <button type="submit" class="btn btn-primary">Salvar</button>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var tipoSelection = document.getElementById('tipo-selection');
+    var typeSelect = document.getElementById('type');
+
+    
+    function toggleSensorType() {
+        if (typeSelect.value === 'command') {
+            tipoSelection.style.display = 'none';
+        } else {
+            tipoSelection.style.display = 'block';
+        }
+    }
+
+    
+    toggleSensorType();
+
+    
+    typeSelect.addEventListener('change', toggleSensorType);
+});
+</script>
 {% endblock %}
