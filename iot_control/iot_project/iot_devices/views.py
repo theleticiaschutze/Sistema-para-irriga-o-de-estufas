@@ -66,29 +66,59 @@ def control_command_device(request, device_id):
     action = request.GET.get('action')  # 'on' ou 'off'
     if action in ['on', 'off']:
         publish_message(device.topic, action)
-    return redirect('device_list')
+
+    url_anterior = request.META.get('HTTP_REFERER')
+    
+    if url_anterior:
+        return redirect(url_anterior) 
+        
+    return redirect('device_list') 
+    
 
 @login_required
-def edit_device(request, device_id):
-    device_type = request.GET.get('type') or request.POST.get('type')
+#def edit_device(request, device_id):
+   # device_type = request.GET.get('type') or request.POST.get('type')
     
-    if device_type == 'sensor':
-        device = get_object_or_404(SensorDevice, id=device_id, user=request.user)
-    else:
+    #if device_type == 'sensor':
+     #   device = get_object_or_404(SensorDevice, id=device_id, user=request.user)
+   # else:
+    #    device = get_object_or_404(CommandDevice, id=device_id, user=request.user)
+
+   # if request.method == "POST":
+    #    device.name = request.POST.get('name')
+    #    device.topic = request.POST.get('topic')
+        
+        
+    #    if device_type == 'sensor':
+    #        device.tipo_sensor = request.POST.get('tipo_sensor') #também busca o tipo
+            
+     #   device.save()
+     #   return redirect('device_list')
+        
+   # return render(request, 'iot_devices/edit_device.html', {'device': device, 'device_type': device_type})
+def edit_device(request, device_id):
+    
+    try:
+        device = SensorDevice.objects.get(id=device_id, user=request.user)
+        device_type = 'sensor'
+    except SensorDevice.DoesNotExist:
+        
         device = get_object_or_404(CommandDevice, id=device_id, user=request.user)
+        device_type = 'command'
 
     if request.method == "POST":
         device.name = request.POST.get('name')
         device.topic = request.POST.get('topic')
         
-        
         if device_type == 'sensor':
-            device.tipo_sensor = request.POST.get('tipo_sensor') #também busca o tipo
+            device.tipo_sensor = request.POST.get('tipo_sensor')
             
         device.save()
         return redirect('device_list')
         
     return render(request, 'iot_devices/edit_device.html', {'device': device, 'device_type': device_type})
+
+
 
 @login_required
 def delete_device(request, device_id):
