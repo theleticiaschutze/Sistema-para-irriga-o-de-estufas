@@ -20,6 +20,12 @@
         <label for="topic">Tópico MQTT</label>
         <input type="text" class="form-control" id="topic" name="topic" required>
     </div>
+
+    <div class="form-group mb-3" id="status-topic-group">
+        <label for="status_topic">Tópico MQTT de Status:</label>
+        <input type="text" class="form-control" name="status_topic" placeholder="Ex: topicIrrigacao_ifsc/8">
+        
+    </div>
     
     
     <div class="form-group" id="tipo-selection" style="display: none;">
@@ -36,14 +42,17 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var tipoSelection = document.getElementById('tipo-selection');
+    var statusTopicGroup = document.getElementById('status-topic-group');
     var typeSelect = document.getElementById('type');
 
     
     function toggleSensorType() {
         if (typeSelect.value === 'command') {
             tipoSelection.style.display = 'none';
+            statusTopicGroup.style.display = 'block';
         } else {
             tipoSelection.style.display = 'block';
+            statusTopicGroup.style.display = 'none';
         }
     }
 
