@@ -39,3 +39,13 @@ class SensorDevice(models.Model):
              self.unit = '%'    
         super().save(*args, **kwargs)  
 
+# Configurações de Irrigação = quando ligar 
+class IrrigationConfig(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    temp_limit = models.FloatField(default=30.0, help_text="Temperatura máxima limite (°C)")
+    hum_limit = models.FloatField(default=40.0, help_text="Umidade mínima limite (%)")
+    auto_mode = models.BooleanField(default=False, help_text="Modo automático ligado/desligado")
+    valve_is_on = models.BooleanField(default=False, help_text="Status atual da válvula")
+
+    def __str__(self):
+        return f"Config Irrigação - User: {self.user.username} (Auto: {self.auto_mode})"
