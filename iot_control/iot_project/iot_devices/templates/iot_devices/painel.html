@@ -40,7 +40,29 @@ function fetchSensorData() {
 
                 const leftDiv = document.createElement("div");
                 
+
+                // Se o sensor for do tipo DHT ou similar que manda temperatura e umidade juntas
+                let valoresHtml = "";
+                if (sensor.tipo_sensor === 'DHT' || sensor.tipo_sensor === 'DHT11' || sensor.tipo_sensor === 'DHT22') {
+                    valoresHtml = `
+                        <span class="font-weight-bold text-danger" style="font-size: 1.0em; margin-right: 15px;">
+                           Temp: ${sensor.temperature !== undefined ? sensor.temperature : '--'} °C
+                        </span>
+                        <span class="font-weight-bold text-primary" style="font-size: 1.0em;">
+                           Umidade: ${sensor.humidity !== undefined ? sensor.humidity : '--'} %
+                        </span>
+                    `;
+                } else {
+                    // Sensores simples (ex: sensor de nível, presença, luminosidade única)
+                    valoresHtml = `
+                        <span class="font-weight-bold" style="font-size: 1.1em;">
+                           ${sensor.current_value} ${sensor.unit || ''}
+                        </span>
+                    `;
+                }
                 // tipo de sensor
+                
+                
                 leftDiv.innerHTML = `<strong>${sensor.name} / ID: ${sensor.id}</strong> 
                                      <span class="badge badge-info ml-2">${sensor.tipo_sensor}</span><br>
                                      <small class="text-muted">Tópico MQTT: ${sensor.topic}</small><br>
