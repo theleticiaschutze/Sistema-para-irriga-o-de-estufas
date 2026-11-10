@@ -11,7 +11,7 @@ class CommandDevice(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.name - {'LIGADO' if self.status else 'DESLIGADO'}"    
+        return f"{self.name} - {'LIGADO' if self.status else 'DESLIGADO'}"  
     
 
 # aqui dispositivos de leitura (os sensores)
