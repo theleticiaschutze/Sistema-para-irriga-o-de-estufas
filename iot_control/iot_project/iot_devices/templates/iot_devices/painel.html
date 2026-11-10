@@ -60,6 +60,14 @@ function fetchSensorData() {
         .catch(error => console.error('Erro ao buscar dados:', error));
 }
 
+<div class="card mt-4 shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <strong>Controle Automático de Irrigação</strong>
+    </div>
+</div>
+
+
+
 
 setInterval(fetchSensorData, 3000);
 
