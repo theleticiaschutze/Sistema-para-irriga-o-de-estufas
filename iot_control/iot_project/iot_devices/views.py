@@ -96,26 +96,6 @@ def control_command_device(request, device_id):
     
 
 @login_required
-#def edit_device(request, device_id):
-   # device_type = request.GET.get('type') or request.POST.get('type')
-    
-    #if device_type == 'sensor':
-     #   device = get_object_or_404(SensorDevice, id=device_id, user=request.user)
-   # else:
-    #    device = get_object_or_404(CommandDevice, id=device_id, user=request.user)
-
-   # if request.method == "POST":
-    #    device.name = request.POST.get('name')
-    #    device.topic = request.POST.get('topic')
-        
-        
-    #    if device_type == 'sensor':
-    #        device.tipo_sensor = request.POST.get('tipo_sensor') #também busca o tipo
-            
-     #   device.save()
-     #   return redirect('device_list')
-        
-   # return render(request, 'iot_devices/edit_device.html', {'device': device, 'device_type': device_type})
 def edit_device(request, device_id):
     
     try:
@@ -196,7 +176,44 @@ def get_sensor_values(request):
         }
         for sensor in sensors
     ]
-    return JsonResponse(data, safe=False)
+   if config.auto_mode:
+        temp_sensor = sensors.filter(tipo_sensor='Temperatura').first()
+        hum_sensor = sensors.filter(tipo_sensor='Humidade').first()
+
+        temp_atual = temp_sensor.current_value if temp_sensor and temp_sensor.current_value is not None else -999
+        hum_atual = hum_sensor.current_value if hum_sensor and hum_sensor.current_value is not None else 999
+
+        # Aciona se Temp for MAIOR/IGUAL ao limite OU se Umidade for MENOR/IGUAL ao limite
+        should_turn_on = (temp_atual >= config.temp_limit) or (hum_atual <= config.hum_limit)
+
+        if config.valve_is_on != should_turn_on:
+            config.valve_is_on = should_turn_on
+            config.save()
+
+            # Se houver um atuador cadastrado, envia o comando via MQTT
+            valve_device = CommandDevice.objects.filter(user=request.user).first()
+            if valve_device:
+                action = 'on' if should_turn_on else 'off'
+                publish_message(valve_device.topic, action)
+                valve_device.status = should_turn_on
+                valve_device.save()
+
+    return JsonResponse({
+        'sensors': sensors_data,
+        'valve_is_on': config.valve_is_on
+    })
+
+
+@login_required
+def save_irrigation_config(request):
+    if request.method == "POST":
+        config, _ = IrrigationConfig.objects.get_or_create(user=request.user)
+        config.temp_limit = float(request.POST.get('temp_limit', config.temp_limit))
+        config.hum_limit = float(request.POST.get('hum_limit', config.hum_limit))
+        config.auto_mode = 'auto_mode' in request.POST
+        config.save()
+        return JsonResponse({'status': 'success', 'message': 'Configurações salvas!'})
+    return JsonResponse({'status': 'error', 'message': 'Método inválido'}, status=400)
 
 @login_required
 def painel(request):    
