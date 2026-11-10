@@ -26,7 +26,6 @@
     <!-- Os sensores serão carregados via AJAX -->
 </ul>
 
-<script>
 function fetchSensorData() {
     fetch("{% url 'get_sensor_values' %}")
         .then(response => response.json())
@@ -60,18 +59,104 @@ function fetchSensorData() {
         .catch(error => console.error('Erro ao buscar dados:', error));
 }
 
+<!-- Card de Controle Automático de Irrigação -->
 <div class="card mt-4 shadow-sm">
     <div class="card-header bg-primary text-white">
         <strong>Controle Automático de Irrigação</strong>
     </div>
+    <div class="card-body">
+        <form id="irrigation-form">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="temp_limit">Temperatura Máxima Limite (°C):</label>
+                    <input type="number" step="0.1" class="form-control" id="temp_limit" name="temp_limit" value="{{ config.temp_limit }}">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="hum_limit">Umidade Mínima (%):</label>
+                    <input type="number" step="0.1" class="form-control" id="hum_limit" name="hum_limit" value="{{ config.hum_limit }}">
+                </div>
+            </div>
+            <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" id="auto_mode" name="auto_mode" {% if config.auto_mode %}checked{% endif %}>
+                <label class="form-check-label" for="auto_mode">Ativar Modo Automático (Baseado nos Sensores)</label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Salvar Configurações</button>
+        </form>
+        
+        <hr>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <span>Status Atual da Válvula: 
+                <span id="valve-status" class="badge {% if valve_is_on %}badge-success{% else %}badge-secondary{% endif %}">
+                    {% if valve_is_on %}Ligada{% else %}Desligada{% endif %}
+                </span>
+            </span>
+        </div>
+    </div>
 </div>
 
+<!-- BLOCO JAVASCRIPT SEPARADO -->
+<script>
+function fetchSensorData() {
+    fetch("{% url 'get_sensor_values' %}")
+        .then(response => response.json())
+        .then(data => {
+            const sensorList = document.getElementById("sensor-list");
+            sensorList.innerHTML = "";
 
+            let sensores = data.sensors || data;
+            sensores.forEach(sensor => {
+                const li = document.createElement("li");
+                li.className = "list-group-item d-flex justify-content-between align-items-center";
 
+                const leftDiv = document.createElement("div");
+                leftDiv.innerHTML = `<strong>${sensor.name} / ID: ${sensor.id}</strong> 
+                                     <span class="badge badge-info ml-2">${sensor.tipo_sensor}</span><br>
+                                     <small class="text-muted">Tópico MQTT: ${sensor.topic}</small><br>
+                                     <span class="font-weight-bold" style="font-size: 1.1em;">
+                                         ${sensor.current_value} ${sensor.unit}
+                                     </span>`;
 
-setInterval(fetchSensorData, 3000);
+                li.appendChild(leftDiv);
+                sensorList.appendChild(li);
+            });
 
+            if (typeof data.valve_is_on !== 'undefined') {
+                const badge = document.getElementById("valve-status");
+                if (data.valve_is_on) {
+                    badge.className = "badge badge-success";
+                    badge.innerText = "Ligada";
+                } else {
+                    badge.className = "badge badge-secondary";
+                    badge.innerText = "Desligada";
+                }
+            }
+        })
+        .catch(error => console.error('Erro ao buscar dados:', error));
+}
+
+// Submeter o formulário de configurações sem dar reload na página
+document.getElementById("irrigation-form").addEventListener("submit", function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch("{% url 'save_irrigation_config' %}", {
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-CSRFToken": formData.get("csrfmiddlewaretoken")
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert("Configurações salvas com sucesso!");
+    })
+    .catch(error => console.error("Erro ao salvar configurações:", error));
+});
 
 window.onload = fetchSensorData;
+setInterval(fetchSensorData, 3000);
+
 </script>
 {% endblock %}
