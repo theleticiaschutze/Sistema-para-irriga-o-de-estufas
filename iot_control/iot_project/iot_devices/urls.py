@@ -11,4 +11,5 @@ urlpatterns = [
     path('get_sensor_values/', views.get_sensor_values, name='get_sensor_values'),  # Rota update valor sensor com polling com JavaScript e AJAX    
     path('update_sensor_by_topic/', views.update_sensor_value_by_topic, name='update_sensor_by_topic'),
     path('painel/', views.painel, name='painel'),
+    path('save_irrigation_config/', views.save_irrigation_config, name='save_irrigation_config'),
 ]
