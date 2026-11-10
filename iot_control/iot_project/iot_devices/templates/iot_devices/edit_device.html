@@ -16,6 +16,13 @@
         <label for="topic">Tópico MQTT</label>
         <input type="text" class="form-control" id="topic" name="topic" value="{{ device.topic }}" required>
     </div>
+
+    {% if device_type == 'command' %}
+    <div class="form-group mb-3">
+        <label for="status_topic">Tópico MQTT de Status</label>
+        <input type="text" class="form-control" id="status_topic" name="status_topic" value="{{ device.status_topic|default:'' }}" placeholder="Ex: topicIrrigacao_ifsc/8">        
+    </div>
+    {% endif %}
     
 
     {% if device_type == 'sensor' %}
