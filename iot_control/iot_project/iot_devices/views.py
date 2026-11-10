@@ -20,20 +20,40 @@ def update_sensor_value_by_topic(request):
         topic = request.POST.get("topic")
         value = request.POST.get("value")
 
-        if topic and value:
+        if topic and value is not None:
+            # 1. Tenta atualizar se for SensorDevice
             try:
-                # Busca o sensor pelo TÓPICO cadastrado (campo unique=True)
                 sensor = SensorDevice.objects.get(topic=topic)
                 sensor.current_value = float(value)
                 sensor.save()
-                return JsonResponse({"status": "success", "sensor": sensor.name, "value": sensor.current_value})
+                return JsonResponse({"status": "success", "type": "sensor", "value": sensor.current_value})
             except SensorDevice.DoesNotExist:
-                print(f"Sensor com tópico '{topic}' não foi encontrado.")
-                return JsonResponse({"error": "Sensor não encontrado"}, status=404)
-            except ValueError:
-                return JsonResponse({"error": "Valor numérico inválido"}, status=400)
+                pass
+
+            # 2. Tenta atualizar se for CommandDevice (Status do Atuador)
+            try:
+                device = CommandDevice.objects.get(status_topic=topic)
+                # Converte "1" / "on" para True, e "0" / "off" para False
+                device.status = str(value).strip() in ['1', 'on', 'true', 'True']
+                device.save()
+                return JsonResponse({"status": "success", "type": "command", "is_active": device.status})
+            except CommandDevice.DoesNotExist:
+                return JsonResponse({"error": "Tópico não cadastrado"}, status=404)
 
     return JsonResponse({"error": "Método não permitido"}, status=405)
+
+@login_required
+def get_actuator_values(request):
+    actuators = CommandDevice.objects.filter(user=request.user)
+    data = [
+        {
+            'id': dev.id,
+            'name': dev.name,
+            'status': dev.status
+        }
+        for dev in actuators
+    ]
+    return JsonResponse(data, safe=False)
 
 @login_required
 def device_list(request): # listagem dos dispositivos
