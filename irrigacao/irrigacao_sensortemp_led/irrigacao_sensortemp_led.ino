@@ -21,6 +21,7 @@ const int mqtt_port = 1883;  // MQTT port (TCP)
 const char *sensor_topic = "topicIrrigacao_ifsc/5";     // MQTT topic
 const char *comando_topic = "topicIrrigacao_ifsc/6";     // MQTT topic
 const char *umidade_topic = "topicIrrigacao_ifsc/7";
+const char *status_topic  = "topicIrrigacao_ifsc/8"; // statudos do led
 
 unsigned long ultimoEnvio = 0;
 
@@ -62,6 +63,7 @@ void connectToMQTTBroker() {
             Serial.println("Conectado ao MQTT broker");
             mqtt_client.subscribe(comando_topic);
             mqtt_client.publish(sensor_topic, "Ola EMQX sou ESP8266 trabalhando para irrigar! ^^");
+            mqtt_client.publish(status_topic, digitalRead(D6) == HIGH ? "1" : "0");
         } else {
             Serial.print("Falha ao conectar no MQTT broker, rc=");
             Serial.print(mqtt_client.state());
@@ -94,10 +96,12 @@ void mqttCallback(char *topic, byte *payload, unsigned int length) {
     
     if (message == "on") {
         digitalWrite(D6, HIGH);
+        mqtt_client.publish(status_topic, "1");
         Serial.println("D6 Ligado!");
     } 
     else if (message == "off") {
         digitalWrite(D6, LOW);
+        mqtt_client.publish(status_topic, "0");
         Serial.println("D6 Desligado!");
     }
 }
