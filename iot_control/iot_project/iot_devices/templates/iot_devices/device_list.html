@@ -15,10 +15,8 @@
                class="btn btn-success btn-sm mr-2">Ligar</a>
             <a href="{% url 'control_command_device' device.id %}?action=off"
                class="btn btn-danger btn-sm mr-2">Desligar</a>
-            <a href="{% url 'edit_device' device.id %}"
-               class="btn btn-warning btn-sm mr-2">Editar</a>
-            <a href="{% url 'delete_device' device.id %}"
-               class="btn btn-danger btn-sm">Excluir</a>
+            <a href="{% url 'edit_device' device.id %}?type=command" class="btn btn-warning btn-sm mr-2">Editar</a>
+            <a href="{% url 'delete_device' device.id %}?type=command" class="btn btn-danger btn-sm">Excluir</a>
         </div>
     </li>
     {% endfor %}
@@ -35,31 +33,23 @@ function fetchSensorData() {
         .then(response => response.json())
         .then(data => {
             const sensorList = document.getElementById("sensor-list");
-            sensorList.innerHTML = ""; // Limpa a lista
+            sensorList.innerHTML = "";
 
-            data.forEach(sensor => {
+            const listaSensores = data.sensors || (Array.isArray(data) ? data : []);
+
+            listaSensores.forEach(sensor => {
                 const li = document.createElement("li");
                 li.className = "list-group-item d-flex justify-content-between align-items-center";
 
                 const leftDiv = document.createElement("div");
-                leftDiv.innerHTML = `<strong>${sensor.name} / ID: ${sensor.id}</strong><br>
-                                     <small class="text-muted">Tópico MQTT: ${sensor.topic}</small><br>
+                leftDiv.innerHTML = `<strong>${sensor.name} (Sensor)</strong><br>
+                                     <small class="text-muted">Tópico: ${sensor.topic}</small><br>
                                      <span class="font-weight-bold">${sensor.current_value} ${sensor.unit}</span>`;
 
                 const rightDiv = document.createElement("div");
-
-                // rightDiv.innerHTML = `
-                //     <a href="{% url 'edit_device' 0 %}".replace('0', sensor.id)
-                //        class="btn btn-warning btn-sm mr-2" id="${sensor.id}">Editar: ${sensor.id}</a>
-                //     <a href="{% url 'delete_device' 0 %}".replace('0', sensor.id)
-                //        class="btn btn-danger btn-sm">Excluir</a>
-                // `;
-
                 rightDiv.innerHTML = `
-                    <a href="/iot/edit/${sensor.id}/"
-                       class="btn btn-warning btn-sm mr-2" id="${sensor.id}">Editar</a>
-                    <a href="/iot/delete/${sensor.id}/"
-                       class="btn btn-danger btn-sm">Excluir</a>
+                    <a href="/iot/edit/${sensor.id}/?type=sensor" class="btn btn-warning btn-sm mr-2">Editar</a>
+                    <a href="/iot/delete/${sensor.id}/?type=sensor" class="btn btn-danger btn-sm">Excluir</a>
                 `;
 
                 li.appendChild(leftDiv);
@@ -69,11 +59,8 @@ function fetchSensorData() {
         })
         .catch(error => console.error('Erro ao buscar dados:', error));
 }
-// f"{API_URL}{sensor_id}/"
-// Atualiza os dados a cada 3 segundos
-setInterval(fetchSensorData, 3000);
 
-// Carrega os dados ao carregar a página
+setInterval(fetchSensorData, 3000);
 window.onload = fetchSensorData;
 </script>
 {% endblock %}

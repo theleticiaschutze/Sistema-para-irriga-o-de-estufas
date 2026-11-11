@@ -116,23 +116,22 @@ def control_command_device(request, device_id):
 
 @login_required
 def edit_device(request, device_id):
-    try:
-        device = SensorDevice.objects.get(id=device_id, user=request.user)
+    tipo_solicitado = request.GET.get('type') or request.POST.get('type')
+    
+    if tipo_solicitado == 'sensor':
+        device = get_object_or_404(SensorDevice, id=device_id, user=request.user)
         device_type = 'sensor'
-    except SensorDevice.DoesNotExist:
+    else:
         device = get_object_or_404(CommandDevice, id=device_id, user=request.user)
         device_type = 'command'
 
     if request.method == "POST":
         device.name = request.POST.get('name')
         device.topic = request.POST.get('topic')
-        
         if device_type == 'sensor':
             device.tipo_sensor = request.POST.get('tipo_sensor')
         elif device_type == 'command':
-            status_top = request.POST.get('status_topic')
-            device.status_topic = status_top if status_top else None
-            
+            device.status_topic = request.POST.get('status_topic') or None
         device.save()
         return redirect('device_list')
         
@@ -185,35 +184,40 @@ def get_sensor_values(request):
         for sensor in sensors
     ]
 
-    # Busca ou cria a configuração do usuário
     config, _ = IrrigationConfig.objects.get_or_create(user=request.user)
 
-    if config.auto_mode:
-        # Define limites de segurança padrão caso estejam como None no banco de dados
+    temp_sensor = sensors.filter(tipo_sensor='Temperatura').first()
+    hum_sensor = sensors.filter(tipo_sensor='Humidade').first()
+
+    temp_atual = temp_sensor.current_value if (temp_sensor and temp_sensor.current_value is not None) else None
+    hum_atual = hum_sensor.current_value if (hum_sensor and hum_sensor.current_value is not None) else None
+
+    # Se o modo automático estiver ativo e houver leituras válidas
+    if config.auto_mode and (temp_atual is not None or hum_atual is not None):
         temp_limit = config.temp_limit if config.temp_limit is not None else 35.0
         hum_limit = config.hum_limit if config.hum_limit is not None else 40.0
 
-        temp_sensor = sensors.filter(tipo_sensor='Temperatura').first()
-        hum_sensor = sensors.filter(tipo_sensor='Humidade').first()
+        # Dispara se umidade for baixa ou temperatura excessiva
+        condicao_temperatura = (temp_atual >= temp_limit) if temp_atual is not None else False
+        condicao_umidade = (hum_atual <= hum_limit) if hum_atual is not None else False
 
-        temp_atual = temp_sensor.current_value if (temp_sensor and temp_sensor.current_value is not None) else -999.0
-        hum_atual = hum_sensor.current_value if (hum_sensor and hum_sensor.current_value is not None) else 999.0
+        should_turn_on = condicao_temperatura or condicao_umidade
+    else:
+        # Se o modo automático for desligado no formulário, a válvula deve ser desligada
+        should_turn_on = False
 
-        should_turn_on = (temp_atual >= temp_limit) or (hum_atual <= hum_limit)
+    # Executa a troca de estado quando houver alteração
+    if config.valve_is_on != should_turn_on:
+        config.valve_is_on = should_turn_on
+        config.save()
 
-        if config.valve_is_on != should_turn_on:
-            config.valve_is_on = should_turn_on
-            config.save()
-
-            valve_device = CommandDevice.objects.filter(user=request.user).first()
-            if valve_device:
-                try:
-                    action = 'on' if should_turn_on else 'off'
-                    publish_message(valve_device.topic, action)
-                    valve_device.status = should_turn_on
-                    valve_device.save()
-                except Exception as e:
-                    print("Erro ao enviar comando MQTT de automação:", e)
+        valve_device = CommandDevice.objects.filter(user=request.user).first()
+        if valve_device:
+            action = 'on' if should_turn_on else 'off'
+            try:
+                publish_message(valve_device.topic, action)
+            except Exception as e:
+                print("Erro ao publicar MQTT na automação:", e)
 
     return JsonResponse({
         'sensors': sensors_data,

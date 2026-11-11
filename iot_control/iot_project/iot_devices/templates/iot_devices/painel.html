@@ -8,7 +8,7 @@
     <li class="list-group-item d-flex justify-content-between align-items-center">
         <div>
             <strong>{{ device.name }}</strong> 
-            <span id="actuator-status-{{ device.id }}" class="badge {% if device.status %}badge-success{% else %}badge-danger{% endif %} ml-2">
+            <span id="actuator-status-{{ device.id }}" class="badge {% if device.status %}bg-success{% else %}bg-danger{% endif %} ml-2">
                 {% if device.status %}LIGADO{% else %}DESLIGADO{% endif %}
             </span><br>
             <small class="text-muted">Cmd: {{ device.topic }} {% if device.status_topic %}| Status: {{ device.status_topic }}{% endif %}</small>
@@ -54,7 +54,7 @@
         <hr>
         <div class="d-flex justify-content-between align-items-center mt-3">
             <span>Status Atual da Válvula: 
-                <span id="valve-status" class="badge {% if valve_is_on %}badge-success{% else %}badge-secondary{% endif %}">
+                <span id="valve-status" class="badge {% if valve_is_on %}bg-success{% else %}bg-secondary{% endif %}">
                     {% if valve_is_on %}Ligada{% else %}Desligada{% endif %}
                 </span>
             </span>
@@ -87,7 +87,7 @@ function fetchSensorData() {
                 const leftDiv = document.createElement("div");
                 leftDiv.innerHTML = `
                     <strong>${sensor.name} / ID: ${sensor.id}</strong> 
-                    <span class="badge badge-info ml-2">${sensor.tipo_sensor}</span><br>
+                    <span class="badge bg-info text-dark ml-2">${sensor.tipo_sensor}</span><br>
                     <small class="text-muted">Tópico MQTT: ${sensor.topic}</small><br>
                     <span class="font-weight-bold" style="font-size: 1.1em;">
                         ${sensor.current_value} ${sensor.unit}
@@ -98,11 +98,11 @@ function fetchSensorData() {
                 sensorList.appendChild(li);
             });
 
-            // Atualiza status da válvula
+            // Atualiza status da válvula com classes de fundo do Bootstrap 5
             if (typeof data.valve_is_on !== 'undefined') {
                 const badge = document.getElementById("valve-status");
                 if (badge) {
-                    badge.className = data.valve_is_on ? "badge badge-success" : "badge badge-secondary";
+                    badge.className = data.valve_is_on ? "badge bg-success" : "badge bg-secondary";
                     badge.innerText = data.valve_is_on ? "Ligada" : "Desligada";
                 }
             }
@@ -121,7 +121,7 @@ function fetchActuatorData() {
                 data.forEach(actuator => {
                     const badge = document.getElementById(`actuator-status-${actuator.id}`);
                     if (badge) {
-                        badge.className = actuator.status ? "badge badge-success ml-2" : "badge badge-danger ml-2";
+                        badge.className = actuator.status ? "badge bg-success ml-2" : "badge bg-danger ml-2";
                         badge.textContent = actuator.status ? "LIGADO" : "DESLIGADO";
                     }
                 });
